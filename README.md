@@ -67,9 +67,9 @@ flowchart LR
 
 ### The three decisions worth reading
 
-- [ADR-001: Data model](docs/adr/001-data-model.md). Integer cents plus a currency code, `org_id` on every tenant table, a unique key that makes a duplicate reminder impossible.
+- [ADR-001: Data model](docs/adr/001-data-model.md). Integer cents plus a currency code, `org_id` on every tenant table, a unique key so the reminder log cannot hold a duplicate.
 - [ADR-002: Row-level security](docs/adr/002-row-level-security.md). Why the database enforces tenant isolation rather than a `WHERE` clause in every query, and the two explicit exceptions.
-- [ADR-003: The reminder job](docs/adr/003-reminder-job.md). `FOR UPDATE SKIP LOCKED`, log before send, one transaction per row, and why the worker is allowed to see every organisation.
+- [ADR-003: The reminder job](docs/adr/003-reminder-job.md). `FOR UPDATE SKIP LOCKED`, log before send, one transaction per row, why the worker is allowed to see every organisation, and why delivery is at-least-once rather than exactly-once.
 
 ### How the repository is run
 
