@@ -1,0 +1,75 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: renewal_tracker
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d renewal_tracker']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - '${MAILPIT_PORT:-8025}:8025'
+      - '1025:1025'
+
+  # One-shot: apply migrations and load the seed, then exit.
+  migrate:
+    build: .
+    command: sh -c "pnpm db:migrate && pnpm db:seed"
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/renewal_tracker
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build: .
+    command: pnpm --filter @renewal/api start
+    environment:
+      APP_DATABASE_URL: postgres://app:app@postgres:5432/renewal_tracker
+      API_PORT: 3000
+    ports:
+      - '${API_PORT:-3000}:3000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    build: .
+    command: pnpm --filter @renewal/worker start
+    environment:
+      WORKER_DATABASE_URL: postgres://worker:worker@postgres:5432/renewal_tracker
+      WORKER_INTERVAL_SECONDS: 30
+      EMAIL_TRANSPORT: smtp
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      EMAIL_FROM: reminders@renewal-tracker.local
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      mailpit:
+        condition: service_started
+
+  web:
+    build: .
+    command: pnpm --filter @renewal/web dev
+    environment:
+      API_URL: http://api:3000
+      WEB_PORT: 5173
+    ports:
+      - '${WEB_PORT:-5173}:5173'
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

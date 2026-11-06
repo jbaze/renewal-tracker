@@ -1,0 +1,26 @@
+{
+  "name": "@renewal/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Postgres migrations, seed data and typed query helpers",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "migrate:up": "tsx src/migrate.ts up",
+    "migrate:down": "tsx src/migrate.ts down",
+    "migrate:status": "tsx src/migrate.ts status",
+    "seed": "tsx src/seed.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@renewal/domain": "workspace:*",
+    "kysely": "^0.29.8",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.23.1"
+  }
+}

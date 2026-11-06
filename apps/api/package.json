@@ -1,0 +1,21 @@
+{
+  "name": "@renewal/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Fastify HTTP API",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@renewal/db": "workspace:*",
+    "@renewal/domain": "workspace:*",
+    "fastify": "^5.0.0",
+    "fastify-plugin": "^5.0.0",
+    "kysely": "^0.29.8",
+    "zod": "^4.0.0"
+  }
+}

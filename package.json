@@ -1,0 +1,36 @@
+{
+  "name": "renewal-tracker",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Multi-tenant subscription renewal tracker",
+  "license": "MIT",
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r --workspace-concurrency=1 run test",
+    "check": "pnpm lint && pnpm format && pnpm typecheck && pnpm test",
+    "db:migrate": "pnpm --filter @renewal/db migrate:up",
+    "db:rollback": "pnpm --filter @renewal/db migrate:down",
+    "db:status": "pnpm --filter @renewal/db migrate:status",
+    "db:seed": "pnpm --filter @renewal/db seed"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.6",
+    "eslint": "^10.14.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.14.0",
+    "prettier": "^3.9.10",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^5.1.0"
+  },
+  "type": "module"
+}

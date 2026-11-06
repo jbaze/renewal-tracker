@@ -1,0 +1,66 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main, dev]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: renewal_tracker
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/renewal_tracker
+      APP_DATABASE_URL: postgres://app:app@localhost:5432/renewal_tracker
+      WORKER_DATABASE_URL: postgres://worker:worker@localhost:5432/renewal_tracker
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm lint
+
+      - run: pnpm format
+
+      - run: pnpm typecheck
+
+      - name: Create the application roles
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docker/postgres/init/001_roles.sql
+
+      - name: Migrations apply, roll back and apply again
+        run: |
+          pnpm db:migrate
+          pnpm db:rollback
+          pnpm db:migrate
+          pnpm db:status
+
+      - run: pnpm test
