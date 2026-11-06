@@ -115,7 +115,31 @@ const tenantPlugin: FastifyPluginAsync<Options> = async (app: FastifyInstance, {
       request.trx = undefined;
     }
   });
+
+  // Safety nets. A client that disconnects mid-request never reaches onSend,
+  // and a hijacked reply skips it too. Whatever path a request takes, the
+  // transaction must not outlive it, or a pooled connection stays "idle in
+  // transaction" holding locks.
+  app.addHook('onRequestAbort', async (request) => {
+    await discardOpenTransaction(request, 'client aborted the request');
+  });
+
+  app.addHook('onResponse', async (request) => {
+    await discardOpenTransaction(request, 'response finished with the transaction still open');
+  });
 };
+
+async function discardOpenTransaction(request: FastifyRequest, why: string): Promise<void> {
+  const trx = request.trx;
+  if (!trx) return;
+  request.trx = undefined;
+  request.log.warn({ reqId: request.id }, `rolling back: ${why}`);
+  try {
+    await trx.rollback().execute();
+  } catch (err) {
+    request.log.error(err, 'rollback failed');
+  }
+}
 
 function headerValue(request: FastifyRequest, name: string): string | undefined {
   const raw = request.headers[name];
