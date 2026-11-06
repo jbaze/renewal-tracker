@@ -2,16 +2,24 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
+    # Everything goes through dev; main only changes from dev.
+    target-branch: dev
     schedule:
       interval: weekly
       day: monday
     groups:
       minor-and-patch:
         update-types: [minor, patch]
-    open-pull-requests-limit: 5
+    # Major versions are a deliberate decision, not a weekly bot PR.
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+    open-pull-requests-limit: 3
 
   - package-ecosystem: github-actions
     directory: /
+    target-branch: dev
     schedule:
       interval: weekly
       day: monday
+    open-pull-requests-limit: 3
