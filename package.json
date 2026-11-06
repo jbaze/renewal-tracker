@@ -14,7 +14,11 @@
     "format:write": "prettier --write .",
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",
-    "check": "pnpm lint && pnpm format && pnpm typecheck && pnpm test"
+    "check": "pnpm lint && pnpm format && pnpm typecheck && pnpm test",
+    "db:migrate": "pnpm --filter @renewal/db migrate:up",
+    "db:rollback": "pnpm --filter @renewal/db migrate:down",
+    "db:status": "pnpm --filter @renewal/db migrate:status",
+    "db:seed": "pnpm --filter @renewal/db seed"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
