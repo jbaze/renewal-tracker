@@ -1,0 +1,324 @@
+/* Plain, readable styling. Design is not the point of this repository. */
+
+:root {
+  --ink: #1f2933;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --paper: #ffffff;
+  --bg: #f6f7f9;
+  --accent: #1d4ed8;
+  --danger: #b91c1c;
+  --ok: #047857;
+  --warn: #b45309;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  font-size: 15px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 1.1rem;
+}
+
+h2 {
+  font-size: 1rem;
+}
+
+h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+.identity {
+  display: flex;
+  gap: 1rem;
+}
+
+.identity label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  color: var(--muted);
+  gap: 0.2rem;
+}
+
+.notice {
+  margin: 0;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.8rem;
+  color: var(--warn);
+  background: #fffbeb;
+  border-bottom: 1px solid #fde68a;
+}
+
+.page {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sidebar {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+main {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+main .panel {
+  background: var(--bg);
+  margin-bottom: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--line);
+}
+
+.badge.active,
+.badge.trial {
+  background: #d1fae5;
+  color: var(--ok);
+}
+
+.badge.cancelling {
+  background: #fef3c7;
+  color: var(--warn);
+}
+
+.row-actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.list li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.list li:last-child {
+  border-bottom: 0;
+}
+
+.totals {
+  margin: 0.5rem 0;
+}
+
+.totals div {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+}
+
+.totals dt {
+  color: var(--muted);
+}
+
+.totals dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.segmented button {
+  border: 0;
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.segmented button.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.form .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.form label.checkbox {
+  flex-direction: row;
+  align-items: center;
+  align-self: end;
+  color: var(--ink);
+}
+
+.form .actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+input,
+select {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #cbd2d9;
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+button {
+  font: inherit;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+button.secondary {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: #cbd2d9;
+}
+
+button.link {
+  background: none;
+  border: 0;
+  color: var(--accent);
+  padding: 0 0.3rem;
+}
+
+button.link.danger {
+  color: var(--danger);
+}
+
+.error {
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 0.8rem;
+}
