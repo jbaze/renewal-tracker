@@ -28,10 +28,5 @@
     "typescript-eslint": "^8.72.1",
     "vitest": "^5.1.0"
   },
-  "type": "module",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
-  }
+  "type": "module"
 }
