@@ -1,2 +1,4 @@
-// Database client, migrations and seed land here with the schema.
-export const DB_PACKAGE = '@renewal/db';
+export * from './client.js';
+export * from './schema.js';
+export { migrateDown, migrateUp, migrationStatus } from './migrate.js';
+export { seed } from './seed.js';
