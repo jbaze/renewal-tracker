@@ -22,6 +22,9 @@ type SeedSubscription = {
   renews_on: string;
   status?: SubscriptionStatus;
   auto_renew?: boolean;
+  reminder_offsets?: number[];
+  /** Mark the reminder as due at seed time, so a fresh stack sends one straight away. */
+  remind_now?: boolean;
 };
 
 const today = new Date();
@@ -79,6 +82,10 @@ export const SEED_ORGANIZATIONS = [
         billing_cycle: 'monthly',
         started_on: '2025-06-01',
         renews_on: inDays(1),
+        // Whatever the time of day, one of these reminders has already passed, so
+        // the worker sends it on its first pass after the seed.
+        reminder_offsets: [30, 7, 2, 1],
+        remind_now: true,
       },
       {
         vendor: 'Linear',
@@ -187,17 +194,20 @@ export async function seed(db: Db): Promise<{ organizations: number; subscriptio
           status,
           auto_renew: s.auto_renew ?? true,
           owner_user_id: ownerIds[0] ?? null,
-          next_reminder_at: nextReminderAt(
-            {
-              billingCycle: s.billing_cycle,
-              startedOn: s.started_on,
-              renewsOn: s.renews_on,
-              status,
-              reminderOffsets: [30, 7, 1],
-              timezone: org.timezone,
-            },
-            today,
-          ),
+          reminder_offsets: s.reminder_offsets ?? [30, 7, 1],
+          next_reminder_at: s.remind_now
+            ? today
+            : nextReminderAt(
+                {
+                  billingCycle: s.billing_cycle,
+                  startedOn: s.started_on,
+                  renewsOn: s.renews_on,
+                  status,
+                  reminderOffsets: s.reminder_offsets ?? [30, 7, 1],
+                  timezone: org.timezone,
+                },
+                today,
+              ),
         })
         .returning('id')
         .executeTakeFirstOrThrow();
