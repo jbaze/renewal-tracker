@@ -16,7 +16,7 @@ The service tracks software subscriptions for more than one organisation and sen
 
 **Dates are dates.** `started_on` and `renews_on` are `date` columns, not timestamps. A renewal happens on a calendar day in the organisation's timezone; the reminder time is computed from the date, the offset and `organizations.timezone`, and stored as a `timestamptz` in `next_reminder_at`.
 
-**`reminder_log` has a unique key on `(subscription_id, renewal_date, offset_days)`.** The worker inserts the log row before it sends anything. A second attempt for the same reminder is a constraint violation, so a duplicate send is impossible rather than merely unlikely. ADR-003 covers the worker.
+**`reminder_log` has a unique key on `(subscription_id, renewal_date, offset_days)`.** The worker inserts the log row before it sends anything. A second attempt to record the same reminder is a constraint violation, so the log cannot hold a duplicate. That makes delivery at-least-once, not exactly-once; ADR-003 names the crash window and why it is accepted.
 
 **A partial index for the worker.** The worker only ever asks "what is due now?", so `subscriptions_due_idx` covers `next_reminder_at` for rows whose status can still get reminders. It stays small no matter how many cancelled subscriptions accumulate.
 
