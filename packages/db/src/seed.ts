@@ -6,6 +6,7 @@
  *
  *   pnpm db:seed
  */
+import { nextReminderAt } from '@renewal/domain';
 import { sql } from 'kysely';
 
 import { createDb, createPool, type Db } from './client.js';
@@ -171,6 +172,7 @@ export async function seed(db: Db): Promise<{ organizations: number; subscriptio
     }
 
     for (const s of org.subscriptions) {
+      const status = s.status ?? 'active';
       const inserted = await db
         .insertInto('subscriptions')
         .values({
@@ -182,9 +184,20 @@ export async function seed(db: Db): Promise<{ organizations: number; subscriptio
           billing_cycle: s.billing_cycle,
           started_on: s.started_on,
           renews_on: s.renews_on,
-          status: s.status ?? 'active',
+          status,
           auto_renew: s.auto_renew ?? true,
           owner_user_id: ownerIds[0] ?? null,
+          next_reminder_at: nextReminderAt(
+            {
+              billingCycle: s.billing_cycle,
+              startedOn: s.started_on,
+              renewsOn: s.renews_on,
+              status,
+              reminderOffsets: [30, 7, 1],
+              timezone: org.timezone,
+            },
+            today,
+          ),
         })
         .returning('id')
         .executeTakeFirstOrThrow();

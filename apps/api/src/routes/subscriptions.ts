@@ -4,10 +4,33 @@
  * the organisation in use. Owners and admins can write; members only read.
  */
 import type { Subscription } from '@renewal/db';
+import { nextReminderAt } from '@renewal/domain';
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 
 import { requireRole } from '../plugins/tenant.js';
+
+/** The next reminder instant for a row as it will be stored, in the organisation's timezone. */
+function scheduleFor(
+  request: FastifyRequest,
+  row: Pick<
+    Subscription,
+    'billing_cycle' | 'started_on' | 'renews_on' | 'status' | 'reminder_offsets'
+  >,
+): Date | null {
+  const org = request.tenant.memberships.find((m) => m.orgId === request.tenant.orgId);
+  return nextReminderAt(
+    {
+      billingCycle: row.billing_cycle,
+      startedOn: row.started_on,
+      renewsOn: row.renews_on,
+      status: row.status,
+      reminderOffsets: row.reminder_offsets,
+      timezone: org?.timezone ?? 'UTC',
+    },
+    new Date(),
+  );
+}
 
 /** YYYY-MM-DD that is a real calendar date: 2026-02-30 must not roll over to March. */
 const isoDate = z
@@ -134,6 +157,13 @@ export const subscriptionRoutes: FastifyPluginAsync = async (app) => {
         status: body.status,
         reminder_offsets: body.reminderOffsets,
         owner_user_id: userId,
+        next_reminder_at: scheduleFor(request, {
+          billing_cycle: body.billingCycle,
+          started_on: body.startedOn,
+          renews_on: body.renewsOn,
+          status: body.status,
+          reminder_offsets: body.reminderOffsets,
+        }),
       })
       .returningAll()
       .executeTakeFirstOrThrow();
@@ -144,24 +174,30 @@ export const subscriptionRoutes: FastifyPluginAsync = async (app) => {
     if (!requireRole(request, reply, [...WRITERS])) return;
     const { id } = idSchema.parse(request.params);
     const body = updateSchema.parse(request.body);
-    const { db } = request.tenant;
-    const row = await db
+    const current = await findOne(request, id);
+    if (!current) return notFound(reply);
+
+    const merged = {
+      billing_cycle: body.billingCycle ?? current.billing_cycle,
+      started_on: body.startedOn ?? current.started_on,
+      renews_on: body.renewsOn ?? current.renews_on,
+      status: current.status,
+      reminder_offsets: body.reminderOffsets ?? current.reminder_offsets,
+    };
+    const row = await request.tenant.db
       .updateTable('subscriptions')
       .set({
         ...(body.vendor !== undefined && { vendor: body.vendor }),
         ...(body.plan !== undefined && { plan: body.plan }),
         ...(body.costCents !== undefined && { cost_cents: body.costCents }),
         ...(body.currency !== undefined && { currency: body.currency }),
-        ...(body.billingCycle !== undefined && { billing_cycle: body.billingCycle }),
-        ...(body.startedOn !== undefined && { started_on: body.startedOn }),
-        ...(body.renewsOn !== undefined && { renews_on: body.renewsOn }),
         ...(body.autoRenew !== undefined && { auto_renew: body.autoRenew }),
-        ...(body.reminderOffsets !== undefined && { reminder_offsets: body.reminderOffsets }),
+        ...merged,
+        next_reminder_at: scheduleFor(request, merged),
       })
       .where('id', '=', id)
       .returningAll()
-      .executeTakeFirst();
-    if (!row) return notFound(reply);
+      .executeTakeFirstOrThrow();
     return toDto(row);
   });
 

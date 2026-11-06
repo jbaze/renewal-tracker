@@ -16,6 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@renewal/domain": "workspace:*",
     "kysely": "^0.29.8",
     "pg": "^8.23.1"
   },
