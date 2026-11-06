@@ -14,7 +14,9 @@ Reminders have to go out once, on time, for every organisation, and the job that
 
 **Claim with `FOR UPDATE SKIP LOCKED`.** The pass selects due rows ordered by `next_reminder_at`, limited to a batch, locking what it takes and skipping what another worker already holds. Two workers never process the same row at the same time, and neither waits for the other.
 
-**Log first, then send, in one transaction per row.** `reminder_log` has a unique key on `(subscription_id, renewal_date, offset_days)`. The worker inserts that row with `ON CONFLICT DO NOTHING` before it sends. No row back means the reminder was already sent by someone, and the email is skipped. If sending throws, the transaction rolls back, the log row disappears, `next_reminder_at` is untouched, and the next pass retries. A duplicate send needs the same key to insert twice, which the database refuses.
+**Log first, then send, in one transaction per row.** `reminder_log` has a unique key on `(subscription_id, renewal_date, offset_days)`. The worker inserts that row with `ON CONFLICT DO NOTHING` before it sends. No row back means the reminder was already sent by someone, and the email is skipped. If sending throws, the transaction rolls back, the log row disappears, `next_reminder_at` is untouched, and the next pass retries.
+
+**What that guarantees, and what it does not.** The log cannot record the same reminder twice; the database enforces that. Delivery is at-least-once, not exactly-once: if the worker dies after the SMTP call has succeeded but before the transaction commits, the log row rolls back with it and the next pass sends the reminder again. Closing that window would need the email provider to take an idempotency key, or a two-step log (claimed, then sent) with a reconciliation job for rows stuck in "claimed". For reminders, a rare repeat is the right trade against a reminder that never arrives, so this design accepts it and says so here.
 
 **One row per transaction after the claim.** The claim is one short transaction; each row then gets its own, so one failing email does not hold locks on the rest of the batch.
 
@@ -26,7 +28,7 @@ Reminders have to go out once, on time, for every organisation, and the job that
 
 ## Consequences
 
-- Running the job twice, or on two workers, sends each reminder once. The tests in `apps/worker/src/reminders.test.ts` do exactly that.
+- Running the job twice, or on two workers, sends each reminder once in normal operation. The tests in `apps/worker/src/reminders.test.ts` do exactly that. The one way to get a repeat is a crash between a successful send and the commit, which is the at-least-once window above.
 - A worker outage is caught up on restart: overdue reminders are sent (the most recent one per subscription, not every missed offset), and past renewal dates roll forward to the first date on or after today.
 - The reminder hour is fixed at 09:00 local. A per-organisation hour is a column and a parameter.
 - With a very large number of tenants the single worker becomes the bottleneck; the claim query already supports many workers, so that is a deployment change, not a code change.
