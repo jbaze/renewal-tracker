@@ -14,7 +14,7 @@
     "@renewal/db": "workspace:*",
     "@renewal/domain": "workspace:*",
     "fastify": "^5.0.0",
-    "fastify-plugin": "^5.0.0",
+    "fastify-plugin": "^6.0.1",
     "kysely": "^0.29.8",
     "zod": "^4.0.0"
   }
