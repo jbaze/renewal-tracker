@@ -53,4 +53,14 @@ jobs:
 
       - run: pnpm typecheck
 
+      - name: Create the application roles
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docker/postgres/init/001_roles.sql
+
+      - name: Migrations apply, roll back and apply again
+        run: |
+          pnpm db:migrate
+          pnpm db:rollback
+          pnpm db:migrate
+          pnpm db:status
+
       - run: pnpm test
