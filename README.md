@@ -104,7 +104,7 @@ Listed so nobody has to guess:
 
 ## How AI is used here
 
-An AI coding assistant was used in this repository the way I use it on client work: for scaffolding, tooling, CRUD routes, the UI and first drafts of tests. Every change was reviewed and edited before it was committed, the pull requests carry the reasoning, and the database policies, renewal rules and reminder job are covered by tests that exercise them against a real Postgres rather than taken on trust.
+I built this repository with Claude Code. I set the scope and the design up front: the data model, tenant isolation enforced by row-level security in the database, and a reminder job that is safe to run twice. Claude Code wrote most of the code, the tests, the decision records and the pull request descriptions from that brief. I reviewed the result and ran the suite against a real Postgres. The review found two problems, fixed in #31 (an overclaim about duplicate reminders) and #34 (a transaction that could stay open). On client work I use it the same way: I own the decisions and the review, and I'm accountable for every line that merges.
 
 ## What I would do next
 
